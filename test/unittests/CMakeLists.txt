@@ -32,3 +32,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
+
+
+add_subdirectory(Binfmt)
+add_subdirectory(Core)

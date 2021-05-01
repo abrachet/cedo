@@ -9,19 +9,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sys/stat.h>
-#include <sys/mman.h>
 #include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include <string_view>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "cedo/Core/ErrorOr.h"
 #include "cedo/Core/FileReader.h"
 
-ErrorOr<FileReader> FileReader::create(std::string_view filename) {
+ErrorOr<FileReader> FileReader::open(std::string_view filename) {
   using namespace std::string_literals;
   int fd = ::open(filename.data(), O_RDONLY);
   if (fd == -1)
@@ -31,7 +31,8 @@ ErrorOr<FileReader> FileReader::create(std::string_view filename) {
   if (::fstat(fd, &s) == -1)
     return "Couldn't stat file \""s + filename.data() + "\"";
 
-  void *mapping = ::mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0);
+  void *mapping =
+      ::mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0);
   (void)::close(fd);
   if (mapping == MAP_FAILED)
     return "mmap failed"s;
@@ -41,7 +42,7 @@ ErrorOr<FileReader> FileReader::create(std::string_view filename) {
 FileReader::~FileReader() {
   if (file_mapping == MAP_FAILED)
     return;
-  
+
   int ret = ::munmap(file_mapping, size);
   (void)ret;
   assert(!ret && "munmap failed");

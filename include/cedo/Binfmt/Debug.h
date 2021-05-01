@@ -9,10 +9,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef CEDO_BINFMT_DEBUG_H
+#define CEDO_BINFMT_DEBUG_H
+
 #include <cstdint>
-#include <vector>
-#include <string_view>
+#include <memory>
 #include <optional>
+#include <string_view>
+#include <vector>
 
 #include "cedo/Core/ErrorOr.h"
 #include "cedo/Core/FileReader.h"
@@ -35,9 +39,9 @@ public:
     return debugSyms->getSymType(sym_name);
   }
 
-  virtual size_t getAddressSizeBytes() const {
-    return sizeof(size_t);
-  }
+  virtual size_t getAddressSizeBytes() const { return sizeof(size_t); }
 };
 
 ErrorOr<BinFile> readBinFile(std::string_view path);
+
+#endif // CEDO_BINFMT_DEBUG_H

@@ -23,10 +23,11 @@ struct FileReader {
   void *file_mapping = MAP_FAILED;
   size_t size;
 
-  FileReader(void *file_mapping, size_t size) :
-    file_mapping(file_mapping), size(size) {}
+  FileReader(void *file_mapping, size_t size)
+      : file_mapping(file_mapping), size(size) {}
+
 public:
-  static ErrorOr<FileReader> create(std::string_view path);
+  static ErrorOr<FileReader> open(std::string_view path);
   // Needed for ErrorOr<FileReader> even though it's ugly...
   FileReader(FileReader &&f) : file_mapping(f.file_mapping), size(f.size) {
     f.file_mapping = MAP_FAILED;
@@ -37,13 +38,9 @@ public:
     return reinterpret_cast<const char *>(file_mapping);
   }
 
-  operator const char *() const {
-    return getFileBuffer();
-  }
+  operator const char *() const { return getFileBuffer(); }
 
-  size_t getFileSize() const {
-    return size;
-  }
+  size_t getFileSize() const { return size; }
 };
 
 #endif // CEDO_CORE_FILEREADER_H

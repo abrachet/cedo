@@ -9,24 +9,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fstream>
+#ifndef CEDO_BINFMT_BINFMT_H
+#define CEDO_BINFMT_BINFMT_H
+
+#include <optional>
 
 #include "cedo/Core/FileReader.h"
-#include "gtest/gtest.h"
 
-TEST(FileReader, FileDoesntExist) {
-  ErrorOr<FileReader> file = FileReader::open("");
-  ASSERT_FALSE(file);
-  ASSERT_EQ(file.getError(), "Couldn't open file \"\"");
-}
+enum class FileFormat {
+  ELF,
+};
 
-TEST(FileReader, ReadBasicFile) {
-  std::ofstream f("test.tmp");
-  f.write("text", 4);
-  f.close();
+enum class AddressSize {
+  Eight,
+  Four,
+};
 
-  ErrorOr<FileReader> file = FileReader::open("test.tmp");
-  ASSERT_TRUE(file);
-  ASSERT_EQ(file->getFileSize(), 4);
-  ASSERT_STREQ(file->getFileBuffer(), "text");
-}
+enum class Endianness {
+  Little,
+  Big,
+};
+
+struct Triple {
+  FileFormat fileFormat : 4;
+  AddressSize addrSize : 2;
+  Endianness endianness : 2;
+};
+
+std::optional<Triple> findFileTriple(const FileReader &file);
+
+#endif // CEDO_BINFMT_BINFMT_H

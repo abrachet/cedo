@@ -43,3 +43,5 @@ Obviously, something like a git hash is trivial enough that we can rely on the l
 ## Testing
 
 `cd build/test/unittest; ctest`
+
+For testing the llvm utility `yaml2obj` is required.

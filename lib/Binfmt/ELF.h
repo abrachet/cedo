@@ -12,13 +12,38 @@
 #ifndef CEDO_LIB_BINFMT_ELF_H
 #define CEDO_LIB_BINFMT_ELF_H
 
+#include <memory>
+#include <optional>
+#include <string_view>
+
+#include "cedo/Binfmt/Binfmt.h"
+#include "cedo/Binfmt/Debug.h"
+#include "cedo/Core/FileReader.h"
+
 namespace ELF {
+
+class Reader : public ::Reader {
+protected:
+  FileReader file;
+
+  Reader(FileReader &&file) : file(std::move(file)) {}
+
+public:
+  static std::unique_ptr<Reader> create(FileReader &&file);
+  static std::unique_ptr<Reader> create(FileReader &&file, Triple t);
+
+  virtual const uint8_t *getSection(std::string_view name) = 0;
+};
 
 constexpr std::string_view magic = "\x7f"
                                    "ELF";
 constexpr off_t offset = 0;
 
 std::optional<Triple> acceptor(const FileReader &);
+
+static inline std::unique_ptr<::Reader> createReader(FileReader &&f) {
+  return Reader::create(std::move(f));
+}
 
 } // namespace ELF
 

@@ -9,39 +9,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CEDO_BINFMT_BINFMT_H
-#define CEDO_BINFMT_BINFMT_H
-
-#include <optional>
-
 #include "cedo/Core/FileReader.h"
+#include "lib/Binfmt/ELF.h"
+#include "gtest/gtest.h"
 
-enum class FileFormat {
-  ELF,
-};
-
-enum class AddressSize {
-  Eight,
-  Four,
-};
-
-enum class Endianness {
-  Little,
-  Big,
-};
-
-struct Triple {
-  FileFormat fileFormat : 4;
-  AddressSize addrSize : 2;
-  Endianness endianness : 2;
-};
-
-class Reader {
-
-public:
-  virtual ~Reader() {}
-};
-
-std::optional<Triple> findFileTriple(const FileReader &file);
-
-#endif // CEDO_BINFMT_BINFMT_H
+TEST(FindSection, Basic) {
+  ErrorOr<FileReader> fOrErr = FileReader::open("Inputs/Shdr.o");
+  ASSERT_TRUE(fOrErr);
+  const uint8_t *fileStart =
+      reinterpret_cast<const uint8_t *>(fOrErr->getFileBuffer());
+  std::unique_ptr<ELF::Reader> reader = ELF::Reader::create(std::move(*fOrErr));
+  ASSERT_TRUE(reader);
+  EXPECT_EQ(reader->getSection(".cedotest"), fileStart + 0x2000);
+}

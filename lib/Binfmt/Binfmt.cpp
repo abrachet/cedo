@@ -20,11 +20,13 @@ struct BinFmt {
   off_t offset;
   std::string_view magic;
 
+  // std::function bad with constexpr...
   std::optional<Triple> (*acceptor)(const FileReader &);
+  std::unique_ptr<Reader> (*getReader)(FileReader &&);
 };
 
-constexpr auto formats =
-    std::array{BinFmt{ELF::offset, ELF::magic, ELF::acceptor}};
+constexpr auto formats = std::array{
+    BinFmt{ELF::offset, ELF::magic, ELF::acceptor, ELF::createReader}};
 
 std::optional<Triple> findFileTriple(const FileReader &file) {
   for (const BinFmt &fmt : formats) {

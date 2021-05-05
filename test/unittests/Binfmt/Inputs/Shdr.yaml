@@ -1,0 +1,10 @@
+--- !ELF
+FileHeader:
+  Class:    ELFCLASS32
+  Data:     ELFDATA2LSB
+  Type:     ET_EXEC
+  Machine:  EM_X86_64
+Sections:
+  - Name: .cedotest
+    Type: SHT_NOBITS
+    ShOffset: 0x2000

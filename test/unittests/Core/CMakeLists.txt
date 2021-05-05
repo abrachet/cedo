@@ -1,4 +1,5 @@
 add_executable(core_test
+    EndianByteReaderTest.cpp
     FileReaderTest.cpp
 )
 

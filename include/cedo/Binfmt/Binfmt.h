@@ -12,6 +12,7 @@
 #ifndef CEDO_BINFMT_BINFMT_H
 #define CEDO_BINFMT_BINFMT_H
 
+#include <memory>
 #include <optional>
 
 #include "cedo/Core/FileReader.h"
@@ -36,12 +37,21 @@ struct Triple {
   Endianness endianness : 2;
 };
 
-class Reader {
+class ObjectFileReader {
+  FileReader file;
 
 public:
-  virtual ~Reader() {}
+  ObjectFileReader(FileReader &&file) : file(std::move(file)) {}
+
+  virtual ~ObjectFileReader() {}
+
+  const FileReader &getFileReader() const { return file; }
+
+  virtual Triple getTriple() const = 0;
 };
 
 std::optional<Triple> findFileTriple(const FileReader &file);
+
+std::unique_ptr<ObjectFileReader> createObjectFileReader(FileReader &&f);
 
 #endif // CEDO_BINFMT_BINFMT_H

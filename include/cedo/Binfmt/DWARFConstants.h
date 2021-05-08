@@ -12,19 +12,22 @@
 #ifndef CEDO_BINFMT_DWARFCONSTANTS_H
 #define CEDO_BINFMT_DWARFCONSTANTS_H
 
+#include <array>
 #include <cstdint>
 
 #include "DWARF.h"
 
-enum DWARFType {
+enum class DWARFType {
   Zero = 0,
   One = 1,
   Two = 2,
   Four = 4,
   Eight = 8,
 
-  Addr,
+  DWARFAddr,   // Based on the AddressSize of the current section
+  MachineAddr, // Based on the AddressSize of the ObjectFile
   String,
+  StringPtr, // This is DWARFAddr
   LEB128,
   ULEB128,
   Indirect,
@@ -215,30 +218,63 @@ struct DW_FORM {
   constexpr operator decltype(value)() const { return value; }
 };
 
-constexpr DW_FORM DW_FORM_form_addr{0x01, DWARFType::Addr};
-constexpr DW_FORM DW_FORM_block2{0x03, static_cast<DWARFType>(2)};
-constexpr DW_FORM DW_FORM_block4{0x04, static_cast<DWARFType>(4)};
-constexpr DW_FORM DW_FORM_data2{0x05, static_cast<DWARFType>(2)};
-constexpr DW_FORM DW_FORM_data4{0x06, static_cast<DWARFType>(4)};
-constexpr DW_FORM DW_FORM_data8{0x07, static_cast<DWARFType>(8)};
-constexpr DW_FORM DW_FORM_string{0x08, DWARFType::String};
-constexpr DW_FORM DW_FORM_block{0x09, DWARFType::LEB128};
-constexpr DW_FORM DW_FORM_block1{0x0a, static_cast<DWARFType>(1)};
-constexpr DW_FORM DW_FORM_data1{0x0b, static_cast<DWARFType>(1)};
-constexpr DW_FORM DW_FORM_flag{0x0c, static_cast<DWARFType>(1)};
-constexpr DW_FORM DW_FORM_sdata{0x0d, DWARFType::LEB128};
-constexpr DW_FORM DW_FORM_strp{0x0e, DWARFType::Addr};
-constexpr DW_FORM DW_FORM_udata{0x0f, DWARFType::ULEB128};
-constexpr DW_FORM DW_FORM_ref_addr{0x10, DWARFType::Addr};
-constexpr DW_FORM DW_FORM_ref1{0x11, static_cast<DWARFType>(1)};
-constexpr DW_FORM DW_FORM_ref2{0x12, static_cast<DWARFType>(2)};
-constexpr DW_FORM DW_FORM_ref4{0x13, static_cast<DWARFType>(4)};
-constexpr DW_FORM DW_FORM_ref8{0x14, static_cast<DWARFType>(8)};
-constexpr DW_FORM DW_FORM_ref_udata{0x15, DWARFType::ULEB128};
-constexpr DW_FORM DW_FORM_indirect{0x16, DWARFType::Indirect};
-constexpr DW_FORM DW_FORM_sec_offset{0x17, DWARFType::Addr};
-constexpr DW_FORM DW_FORM_exprloc{0x18, DWARFType::Exprloc};
-constexpr DW_FORM DW_FORM_flag_present{0x19, static_cast<DWARFType>(0)};
-constexpr DW_FORM DW_FORM_ref_sig8{0x20, static_cast<DWARFType>(8)};
+constexpr std::array DW_FORM_static_list{
+    DW_FORM{0x01, DWARFType::MachineAddr},
+    DW_FORM{0x03, static_cast<DWARFType>(2)},
+    DW_FORM{0x04, static_cast<DWARFType>(4)},
+    DW_FORM{0x05, static_cast<DWARFType>(2)},
+    DW_FORM{0x06, static_cast<DWARFType>(4)},
+    DW_FORM{0x07, static_cast<DWARFType>(8)},
+    DW_FORM{0x08, DWARFType::String},
+    DW_FORM{0x09, DWARFType::LEB128},
+    DW_FORM{0x0a, static_cast<DWARFType>(1)},
+    DW_FORM{0x0b, static_cast<DWARFType>(1)},
+    DW_FORM{0x0c, static_cast<DWARFType>(1)},
+    DW_FORM{0x0d, DWARFType::LEB128},
+    DW_FORM{0x0e, DWARFType::StringPtr},
+    DW_FORM{0x0f, DWARFType::ULEB128},
+    DW_FORM{0x10, DWARFType::DWARFAddr},
+    DW_FORM{0x11, static_cast<DWARFType>(1)},
+    DW_FORM{0x12, static_cast<DWARFType>(2)},
+    DW_FORM{0x13, static_cast<DWARFType>(4)},
+    DW_FORM{0x14, static_cast<DWARFType>(8)},
+    DW_FORM{0x15, DWARFType::ULEB128},
+    DW_FORM{0x16, DWARFType::Indirect},
+    DW_FORM{0x17, DWARFType::DWARFAddr},
+    DW_FORM{0x18, DWARFType::Exprloc},
+    DW_FORM{0x19, static_cast<DWARFType>(0)},
+    DW_FORM{0x20, static_cast<DWARFType>(8)}};
+constexpr DW_FORM DW_FORM_form_addr = DW_FORM_static_list[0];
+constexpr DW_FORM DW_FORM_block2 = DW_FORM_static_list[1];
+constexpr DW_FORM DW_FORM_block4 = DW_FORM_static_list[2];
+constexpr DW_FORM DW_FORM_data2 = DW_FORM_static_list[3];
+constexpr DW_FORM DW_FORM_data4 = DW_FORM_static_list[4];
+constexpr DW_FORM DW_FORM_data8 = DW_FORM_static_list[5];
+constexpr DW_FORM DW_FORM_string = DW_FORM_static_list[6];
+constexpr DW_FORM DW_FORM_block = DW_FORM_static_list[7];
+constexpr DW_FORM DW_FORM_block1 = DW_FORM_static_list[8];
+constexpr DW_FORM DW_FORM_data1 = DW_FORM_static_list[9];
+constexpr DW_FORM DW_FORM_flag = DW_FORM_static_list[10];
+constexpr DW_FORM DW_FORM_sdata = DW_FORM_static_list[11];
+constexpr DW_FORM DW_FORM_strp = DW_FORM_static_list[12];
+constexpr DW_FORM DW_FORM_udata = DW_FORM_static_list[13];
+constexpr DW_FORM DW_FORM_ref_addr = DW_FORM_static_list[14];
+constexpr DW_FORM DW_FORM_ref1 = DW_FORM_static_list[15];
+constexpr DW_FORM DW_FORM_ref2 = DW_FORM_static_list[16];
+constexpr DW_FORM DW_FORM_ref4 = DW_FORM_static_list[17];
+constexpr DW_FORM DW_FORM_ref8 = DW_FORM_static_list[18];
+constexpr DW_FORM DW_FORM_ref_udata = DW_FORM_static_list[19];
+constexpr DW_FORM DW_FORM_indirect = DW_FORM_static_list[20];
+constexpr DW_FORM DW_FORM_sec_offset = DW_FORM_static_list[21];
+constexpr DW_FORM DW_FORM_exprloc = DW_FORM_static_list[22];
+constexpr DW_FORM DW_FORM_flag_present = DW_FORM_static_list[23];
+constexpr DW_FORM DW_FORM_ref_sig8 = DW_FORM_static_list[24];
+
+constexpr DW_FORM get_DW_FORM(decltype(DW_FORM::value) value) {
+  for (const auto &a : DW_FORM_static_list)
+    if (a.value == value)
+      return a;
+  assert(0 && "value was not part of DW_FORM_static_list");
+}
 
 #endif // CEDO_BINFMT_DWARFCONSTANTS_H

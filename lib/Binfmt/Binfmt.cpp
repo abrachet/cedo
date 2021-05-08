@@ -11,6 +11,7 @@
 
 #include <array>
 #include <optional>
+#include <type_traits>
 
 #include "cedo/Binfmt/Binfmt.h"
 
@@ -22,23 +23,35 @@ struct BinFmt {
 
   // std::function bad with constexpr...
   std::optional<Triple> (*acceptor)(const FileReader &);
-  std::unique_ptr<Reader> (*getReader)(FileReader &&);
+  std::unique_ptr<ObjectFileReader> (*getReader)(FileReader &&);
 };
 
 constexpr auto formats = std::array{
     BinFmt{ELF::offset, ELF::magic, ELF::acceptor, ELF::createReader}};
 
-std::optional<Triple> findFileTriple(const FileReader &file) {
+template <typename Callable>
+static std::result_of_t<Callable(const BinFmt &)>
+forEachFmt(const char *fileBuffer, Callable c) {
   for (const BinFmt &fmt : formats) {
-    const char *fileOffset = file.getFileBuffer() + fmt.offset;
+    const char *fileOffset = fileBuffer + fmt.offset;
     std::string_view magic{fileOffset, fmt.magic.size()};
     if (magic != fmt.magic)
       continue;
 
-    std::optional<Triple> tripleOrNot = fmt.acceptor(file);
-    if (tripleOrNot)
-      return tripleOrNot;
+    if (auto ret = c(fmt); ret)
+      return ret;
   }
 
   return {};
+}
+
+std::optional<Triple> findFileTriple(const FileReader &file) {
+  return forEachFmt(file.getFileBuffer(),
+                    [&file](const BinFmt &fmt) { return fmt.acceptor(file); });
+}
+
+std::unique_ptr<ObjectFileReader> createObjectFileReader(FileReader &&f) {
+  return forEachFmt(f.getFileBuffer(), [&f](const BinFmt &fmt) {
+    return fmt.getReader(std::move(f));
+  });
 }

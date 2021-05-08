@@ -17,16 +17,13 @@
 #include <string_view>
 
 #include "cedo/Binfmt/Binfmt.h"
-#include "cedo/Binfmt/Debug.h"
 #include "cedo/Core/FileReader.h"
 
 namespace ELF {
 
-class Reader : public ::Reader {
+class Reader : public ObjectFileReader {
 protected:
-  FileReader file;
-
-  Reader(FileReader &&file) : file(std::move(file)) {}
+  Reader(FileReader &&file) : ObjectFileReader(std::move(file)) {}
 
 public:
   static std::unique_ptr<Reader> create(FileReader &&file);
@@ -47,7 +44,7 @@ constexpr off_t offset = 0;
 
 std::optional<Triple> acceptor(const FileReader &);
 
-static inline std::unique_ptr<::Reader> createReader(FileReader &&f) {
+static inline std::unique_ptr<ObjectFileReader> createReader(FileReader &&f) {
   return Reader::create(std::move(f));
 }
 

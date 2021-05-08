@@ -135,12 +135,13 @@ class ELFReaderImpl final : public Reader {
   }
 
   ErrorOr<std::pair<const Shdr *, size_t>> getShdrTable() const {
-    const Ehdr &ehdr = *reinterpret_cast<const Ehdr *>(file.getFileBuffer());
+    const Ehdr &ehdr =
+        *reinterpret_cast<const Ehdr *>(getFileReader().getFileBuffer());
     if (!ehdr.e_shoff)
       return "No section headers in binary"s;
 
-    const Shdr *shdr =
-        reinterpret_cast<const Shdr *>(file.getFileBuffer() + ehdr.e_shoff);
+    const Shdr *shdr = reinterpret_cast<const Shdr *>(
+        getFileReader().getFileBuffer() + ehdr.e_shoff);
     if (ehdr.e_shstrndx >= ehdr.e_shnum)
       return "String table section larger than known sections"s;
 
@@ -148,14 +149,16 @@ class ELFReaderImpl final : public Reader {
   }
 
   ErrorOr<const Shdr &> getSectionHeader(std::string_view name) const {
-    const Ehdr &ehdr = *reinterpret_cast<const Ehdr *>(file.getFileBuffer());
+    const Ehdr &ehdr =
+        *reinterpret_cast<const Ehdr *>(getFileReader().getFileBuffer());
     auto shdrOrErr = getShdrTable();
     if (!shdrOrErr)
       return shdrOrErr.getError();
     const Shdr *shdr = shdrOrErr->first;
 
     const Shdr &shstr = shdr[ehdr.e_shstrndx];
-    const char *const strtab = file.getFileBuffer() + shstr.sh_offset;
+    const char *const strtab =
+        getFileReader().getFileBuffer() + shstr.sh_offset;
 
     for (const Shdr *currentSection = shdr, *end = shdr + ehdr.e_shnum;
          currentSection != end; currentSection++)
@@ -167,7 +170,7 @@ class ELFReaderImpl final : public Reader {
 
   // TODO maybe error check...
   const uint8_t *getSectionAddr(const Shdr &shdr) const {
-    return reinterpret_cast<const uint8_t *>(file.getFileBuffer()) +
+    return reinterpret_cast<const uint8_t *>(getFileReader().getFileBuffer()) +
            shdr.sh_offset;
   }
 
@@ -200,8 +203,12 @@ public:
     if (!offsetOrErr)
       return offsetOrErr.getError();
 
-    return reinterpret_cast<const uint8_t *>(file.getFileBuffer()) +
+    return reinterpret_cast<const uint8_t *>(getFileReader().getFileBuffer()) +
            *offsetOrErr + rela->r_addend;
+  }
+
+  Triple getTriple() const override {
+    return {FileFormat::ELF, addrSize, endianness};
   }
 };
 

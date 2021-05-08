@@ -1,5 +1,5 @@
 add_executable(binfmt_test
-    DebugTest.cpp
+    DWARFBasicTest.cpp
     ELFFindSectionTest.cpp
     ELFResolveRelocTest.cpp
     FindFileTriple.cpp

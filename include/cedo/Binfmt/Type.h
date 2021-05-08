@@ -9,11 +9,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cedo/Binfmt/Debug.h"
-#include "gtest/gtest.h"
+#ifndef CEDO_BINFMT_TYPE_H
+#define CEDO_BINFMT_TYPE_H
 
-TEST(Debug, NotImplemented) {
-  ErrorOr<BinFile> binFileOrError = readBinFile("");
-  ASSERT_FALSE(binFileOrError);
-  ASSERT_EQ(binFileOrError.getError(), "Not implemented");
-}
+struct Type {
+  size_t size;
+};
+
+#endif // CEDO_BINFMT_TYPE_H

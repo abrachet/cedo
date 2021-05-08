@@ -32,7 +32,13 @@ public:
   static std::unique_ptr<Reader> create(FileReader &&file);
   static std::unique_ptr<Reader> create(FileReader &&file, Triple t);
 
-  virtual const uint8_t *getSection(std::string_view name) = 0;
+  // This does not change the underlying file or it's buffer, just returns the
+  // value.
+  virtual ErrorOr<const uint8_t *>
+  attemptResolveLocalReloc(std::string_view section_name,
+                           uint64_t offset) const = 0;
+
+  virtual const uint8_t *getSection(std::string_view name) const = 0;
 };
 
 constexpr std::string_view magic = "\x7f"

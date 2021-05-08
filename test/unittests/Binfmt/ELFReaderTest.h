@@ -9,15 +9,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "cedo/Core/ErrorOr.h"
 #include "cedo/Core/FileReader.h"
 #include "lib/Binfmt/ELF.h"
-
-#include "ELFReaderTest.h"
 #include "gtest/gtest.h"
 
-class FindSection : public ELFReaderTest {};
+class ELFReaderTest : public ::testing::Test {
+  std::unique_ptr<ELF::Reader> reader;
+  const uint8_t *fileStart;
 
-TEST_F(FindSection, Basic) {
-  SetUp("Inputs/Shdr.o");
-  EXPECT_EQ(getReader().getSection(".cedotest"), getFileStart() + 0x2000);
-}
+public:
+  void SetUp(std::string_view filename) {
+    ErrorOr<FileReader> fOrErr = FileReader::open(filename);
+    ASSERT_TRUE(fOrErr) << fOrErr.getError();
+    fileStart = reinterpret_cast<const uint8_t *>(fOrErr->getFileBuffer());
+    reader = ELF::Reader::create(std::move(*fOrErr));
+    ASSERT_TRUE(reader);
+  }
+
+  const ELF::Reader &getReader() const { return *reader; }
+
+  const uint8_t *getFileStart() const { return fileStart; }
+};

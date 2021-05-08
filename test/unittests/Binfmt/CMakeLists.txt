@@ -1,6 +1,7 @@
 add_executable(binfmt_test
     DebugTest.cpp
     ELFFindSectionTest.cpp
+    ELFResolveRelocTest.cpp
     FindFileTriple.cpp
 )
 

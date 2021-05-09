@@ -34,5 +34,6 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 
+add_subdirectory(Backend)
 add_subdirectory(Binfmt)
 add_subdirectory(Core)

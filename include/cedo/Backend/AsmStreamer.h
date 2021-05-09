@@ -12,12 +12,14 @@
 #ifndef CEDO_BACKEND_BACKEND_H
 #define CEDO_BACKEND_BACKEND_H
 
-#include <fstream>
+#include <iosfwd>
+#include <sstream>
 
 #include "cedo/Binfmt/Binfmt.h"
 
 class AsmStreamer {
   std::ostream &underlyingStream;
+  std::stringstream currentLine;
 
   static constexpr char spaces[17] = "                ";
   static constexpr int tabSize = 4;
@@ -26,10 +28,20 @@ class AsmStreamer {
 public:
   AsmStreamer(std::ostream &underlyingStream)
       : underlyingStream(underlyingStream) {}
-  ~AsmStreamer() { underlyingStream.flush(); }
+  ~AsmStreamer() { flush(); }
+
+  void flush() {
+    if (!currentLine.str().size())
+      return;
+    if (*currentLine.str().rbegin() != '\n')
+      currentLine << '\n';
+    underlyingStream << currentLine.str();
+    currentLine.str(std::string{});
+  }
 
   struct Tab {};
   struct Directive : public std::string_view {};
+  struct Label : public std::string_view {};
 
   struct RawBytes {
     const uint8_t *start;
@@ -43,17 +55,27 @@ public:
   };
 
   template <typename T> AsmStreamer &operator<<(T t) {
-    underlyingStream << t;
+    currentLine << t;
     return *this;
   }
 
   template <> AsmStreamer &operator<<<Tab>(Tab) {
-    underlyingStream << tab;
+    currentLine << tab;
     return *this;
   }
 
   AsmStreamer &operator<<(Directive d) {
+    flush();
     *this << Tab{} << d.data();
+    return *this;
+  }
+
+  AsmStreamer &operator<<(Label l) {
+    flush();
+    *this << l.data();
+    if (*l.rbegin() != ':')
+      *this << ':';
+    *this << '\n';
     return *this;
   }
 

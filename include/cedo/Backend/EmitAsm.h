@@ -9,21 +9,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sstream>
+#ifndef CEDO_BACKEND_EMITASM_H
+#define CEDO_BACKEND_EMITASM_H
 
-#include "cedo/Backend/AsmStreamer.h"
+#include <iosfwd>
+#include <string>
+#include <tuple>
+#include <vector>
 
-#include "gtest/gtest.h"
+#include "cedo/Binfmt/Type.h"
 
-TEST(AsmStreamer, PrintBytes) {
-  std::stringstream output;
-  AsmStreamer streamer{output};
+using SymName = std::string;
+using Sym = std::tuple<SymName, Type, const void *>;
 
-  uint8_t bytes[4]{1, 2, 3, 4};
-  streamer << AsmStreamer::RawBytes{bytes, 4};
-  streamer.flush();
+void emitAsm(const std::vector<Sym> &symList, std::ostream &os);
 
-  const char *expected = "    .byte 1\n    .byte 2\n    .byte 3\n    .byte 4\n";
-
-  EXPECT_STREQ(output.str().c_str(), expected);
-}
+#endif // CEDO_BACKEND_EMITASM_H

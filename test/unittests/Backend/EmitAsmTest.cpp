@@ -12,18 +12,44 @@
 #include <sstream>
 
 #include "cedo/Backend/AsmStreamer.h"
+#include "cedo/Backend/EmitAsm.h"
 
 #include "gtest/gtest.h"
 
-TEST(AsmStreamer, PrintBytes) {
+TEST(EmitAsm, EmitBasicTypes) {
+  const char *expectedBasicTypes =
+      R"(    .data
+    .type sym4,@object
+    .size sym4, 4
+    .global sym4
+    .align 1
+sym4:
+    .byte 1
+    .byte 2
+    .byte 3
+    .byte 4
+
+    .type sym8,@object
+    .size sym8, 8
+    .global sym8
+    .align 1
+sym8:
+    .byte 1
+    .byte 2
+    .byte 3
+    .byte 4
+    .byte 5
+    .byte 6
+    .byte 7
+    .byte 8
+
+    .ident "cedo 0.1"
+)";
+
   std::stringstream output;
-  AsmStreamer streamer{output};
 
-  uint8_t bytes[4]{1, 2, 3, 4};
-  streamer << AsmStreamer::RawBytes{bytes, 4};
-  streamer.flush();
+  uint8_t bytes[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+  emitAsm({{"sym4", Type{4}, bytes}, {"sym8", Type{8}, bytes}}, output);
 
-  const char *expected = "    .byte 1\n    .byte 2\n    .byte 3\n    .byte 4\n";
-
-  EXPECT_STREQ(output.str().c_str(), expected);
+  EXPECT_STREQ(output.str().c_str(), expectedBasicTypes);
 }

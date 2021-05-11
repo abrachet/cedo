@@ -141,6 +141,10 @@ class DWARFReader {
         if (!resolvedRelocOrErr)
           return std::string{};
         data = reinterpret_cast<uint64_t>(*resolvedRelocOrErr);
+      } else {
+        const uint8_t *debugStrSec = elfReader.getSection(".debug_str");
+        assert(debugStrSec && "Couldn't find .debug_str");
+        data = reinterpret_cast<uintptr_t>(debugStrSec) + data;
       }
       return std::string{reinterpret_cast<const char *>(data)};
     }

@@ -11,7 +11,7 @@ function(add_cedo_system_test test_file cedo_file symbol)
     endif()
     add_custom_command(
         OUTPUT ${cedo_input}
-        COMMAND ${compiler} ${CMAKE_CURRENT_SOURCE_DIR}/${cedo_file} -g -shared -o ${cedo_input}
+        COMMAND ${compiler} ${CMAKE_CURRENT_SOURCE_DIR}/${cedo_file} -g -shared -fPIC -o ${cedo_input}
     )
 
     add_custom_command(
@@ -31,4 +31,4 @@ endfunction()
 add_subdirectory(typedef)
 
 add_cedo_system_test(basic_test.c basic_test.cedo.c a)
-
+add_cedo_system_test(main_executed_test.c main_executed_test.cedo.c a)

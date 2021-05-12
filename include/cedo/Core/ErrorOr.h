@@ -171,6 +171,9 @@ public:
   ~ErrorOr() {
     if (!HasError)
       getStorage()->~storage_type();
+    else {
+      std::string dtor = std::move(*getErrorStorage());
+    }
   }
 
   /// Return false if there is an error.

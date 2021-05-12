@@ -1,6 +1,7 @@
 add_library(Binfmt
     Binfmt.cpp
     DWARF.cpp
+    DWARFType.cpp
     ELF.cpp
 )
 

@@ -44,8 +44,8 @@ class DWARF {
   const uint8_t *debugInfoStart;
   std::vector<DIE> debugInfo;
 
-  std::optional<DIE> getTypeDieFromVarDIE(const DIE &varDie) const;
-  Type getTypeFromTypeDIE(const DIE &die) const;
+  std::optional<DIE> getTypeDieFromDie(const DIE &die) const;
+  Type getTypeFromTypeDie(const DIE &die) const;
 
 public:
   static ErrorOr<DWARF>

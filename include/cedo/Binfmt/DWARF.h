@@ -12,6 +12,7 @@
 #ifndef CEDO_BINFMT_DWARF_H
 #define CEDO_BINFMT_DWARF_H
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -35,6 +36,7 @@ class DWARF {
     DW_TAG tag;
     uint64_t offset;
     Info info;
+    std::vector<uint64_t> childrenOffsets;
 
     std::optional<Data> getAttributeIfPresent(DW_AT attr) const;
   };
@@ -47,11 +49,20 @@ class DWARF {
   std::optional<DIE> getTypeDieFromDie(const DIE &die) const;
   Type getTypeFromTypeDie(const DIE &die) const;
 
+  DIE *getDIEFromOffset(uint64_t offset) {
+    auto it =
+        std::find_if(debugInfo.begin(), debugInfo.end(),
+                     [offset](const DIE &d) { return d.offset == offset; });
+    return it == debugInfo.end() ? nullptr : std::addressof(*it);
+  }
+
 public:
   static ErrorOr<DWARF>
   readFromObject(const ObjectFileReader &objectFileReader);
 
   std::optional<Type> getVariableType(std::string_view sym_name) const;
+
+  const std::vector<DIE> &getDebugInfo() const { return debugInfo; }
 };
 
 #endif // CEDO_BINFMT_DWARF_H

@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <stack>
 #include <string>
 
 #include "cedo/Binfmt/Binfmt.h"
@@ -39,6 +40,8 @@ class DWARFReader {
   const uint8_t *const debugInfoStart;
   AddressSize currentSecAddrSize;
   std::vector<Abbrev> abbrevTable;
+
+  std::stack<uint64_t> parentDIEs;
 
   DWARFReader(DWARF &dwarf, const ELF::Reader &elfReader,
               const char *objectFileStart, const uint8_t *abbrevSecStart,
@@ -245,12 +248,14 @@ std::string DWARFReader::readDebugInfo() {
   dwarf.addrSize = objTriple.addrSize;
   dwarf.debugInfo.reserve(abbrevTable.size());
 
-  while (debugInfo != end)
+  while (debugInfo < end)
     if (std::string err =
             readOneDIE(debugInfo, reinterpret_cast<const uint8_t *>(end));
         err != std::string{})
       return err;
 
+  assert(!parentDIEs.size() &&
+         "Didn't find all end of child marks for DIEs with children");
   return {};
 }
 
@@ -272,12 +277,29 @@ std::string DWARFReader::readOneDIE(const uint8_t *&debugInfo,
 
   const Abbrev &currentDieType = abbrevTable[abbrevCode];
   auto &die = dwarf.debugInfo.emplace_back();
+
+  if (parentDIEs.size()) {
+    uint64_t parentOffset = parentDIEs.top();
+    DWARF::DIE *parentDie = dwarf.getDIEFromOffset(parentOffset);
+    assert(parentDie && "parent wasn't found, messed up somewhere");
+    parentDie->childrenOffsets.emplace_back(offset);
+  }
+
+  if (currentDieType.children)
+    parentDIEs.push(offset);
+
   die.tag = currentDieType.tag;
   die.offset = offset;
 
   // TODO check if we would have read past end
   for (const auto &[attr, form] : currentDieType.attributes)
     die.info.emplace_back(attr, readFromPointer(form.type, debugInfo));
+
+  // End of child mark
+  if (parentDIEs.size() && !*debugInfo) {
+    debugInfo++;
+    parentDIEs.pop();
+  }
 
   return {};
 }

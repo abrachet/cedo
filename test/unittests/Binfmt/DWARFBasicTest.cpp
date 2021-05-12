@@ -14,19 +14,28 @@
 #include "cedo/Core/FileReader.h"
 #include "gtest/gtest.h"
 
-TEST(DWARFBasic, ReadBasicType) {
-  ErrorOr<FileReader> fileReaderOrErr = FileReader::open("Inputs/BasicTypes.o");
-  ASSERT_TRUE(fileReaderOrErr);
+struct DWARFBasic : public ::testing::Test {
+  DWARF dwarf;
 
-  std::unique_ptr<ObjectFileReader> objFileReader =
-      createObjectFileReader(std::move(*fileReaderOrErr));
-  ASSERT_NE(objFileReader, nullptr);
+  void SetUp() override {
+    ErrorOr<FileReader> fileReaderOrErr =
+        FileReader::open("Inputs/BasicTypes.o");
+    ASSERT_TRUE(fileReaderOrErr);
 
-  ErrorOr<DWARF> dwarfOrErr = DWARF::readFromObject(*objFileReader);
-  ASSERT_TRUE(dwarfOrErr) << dwarfOrErr.getError();
+    std::unique_ptr<ObjectFileReader> objFileReader =
+        createObjectFileReader(std::move(*fileReaderOrErr));
+    ASSERT_NE(objFileReader, nullptr);
 
-  auto expectVarSize = [&dwarfOrErr](std::string_view sym_name, size_t size) {
-    std::optional<Type> type = dwarfOrErr->getVariableType(sym_name);
+    ErrorOr<DWARF> dwarfOrErr = DWARF::readFromObject(*objFileReader);
+    ASSERT_TRUE(dwarfOrErr) << dwarfOrErr.getError();
+
+    dwarf = std::move(*dwarfOrErr);
+  }
+};
+
+TEST_F(DWARFBasic, ReadBasicType) {
+  auto expectVarSize = [&](std::string_view sym_name, size_t size) {
+    std::optional<Type> type = dwarf.getVariableType(sym_name);
     if (!type) {
       EXPECT_TRUE(false) << "Couldn't find symbol: " << sym_name;
       return;
@@ -39,5 +48,12 @@ TEST(DWARFBasic, ReadBasicType) {
   expectVarSize("four", 4);
   expectVarSize("eight", 8);
 
-  EXPECT_FALSE(dwarfOrErr->getVariableType("doesnt_exist"));
+  EXPECT_FALSE(dwarf.getVariableType("doesnt_exist"));
+}
+
+TEST_F(DWARFBasic, ChildDIEs) {
+  const auto &compileUnitDIE = dwarf.getDebugInfo()[0];
+  ASSERT_EQ(compileUnitDIE.tag, DW_TAG_compile_unit);
+  EXPECT_EQ(compileUnitDIE.childrenOffsets.size(),
+            dwarf.getDebugInfo().size() - 1);
 }

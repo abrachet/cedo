@@ -23,6 +23,8 @@
 #include "cedo/Core/FileReader.h"
 #include "cedo/Runtime/Runtime.h"
 
+#include "version/Version.h"
+
 struct Args {
   std::string_view inputFile;
   std::string outputFile;
@@ -149,7 +151,7 @@ int main(int argc, const char **argv) {
   }
 
   std::ofstream stream{args.outputFile};
-  emitAsm(*symsOrErr, stream);
+  emitAsm(*symsOrErr, stream, createVersionString());
 
   return 0;
 }

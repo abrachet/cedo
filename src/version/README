@@ -1,0 +1,21 @@
+This directory gives an example on how to use cedo in a real scenario
+
+In this example cedo is being bootstrapped because it needs to have been built before we can create
+the version symbols, so there is some added complexity to the build but it's just to check if cedo
+has been built yet.
+
+ExportVersion.c is compiled as a shared object, ExportVersion.o.
+It gets the git hash and most recent tag and puts them into githash and version respectively.
+
+Then we run `cedo -S -s githash -s version -o version.s ExportVerion.o`
+    -S means save temps, ie we want the assembly file
+    -s specifies a symbol we want to export, here githash and version
+    -o is our output file, version.s
+    and our positional argument ExportVersion.o is the shared object we want to run
+
+In Version.cpp we have two global symbols of the same names (important to note their names are
+not mangled because they are global variables). These are also weak symbols, so that if version.o
+(from compiling version.s from cedo) is in our linker inputs it will choose those definitions instead.
+We also define default values for githash and verion but in this cause they are just "".
+
+After building it again, cedo will output: `.ident "cedo (v0.1) c394694c2a996d15a6d634fdef15d39b1ce858b2"`

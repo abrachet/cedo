@@ -39,15 +39,19 @@ static void emitOneSym(AsmStreamer &stream, const Sym &sym) {
   stream << '\n';
 }
 
-static void emitFileEpilogue(AsmStreamer &stream) {
-  stream << AsmStreamer::Directive{".ident"} << " \"cedo 0.1\"";
+static void emitFileEpilogue(AsmStreamer &stream, std::string_view versionStr) {
+  stream << AsmStreamer::Directive{".ident"} << " \"cedo";
+  if (versionStr.size())
+    stream << ' ' << versionStr;
+  stream << '"';
 }
 
-void emitAsm(const std::vector<Sym> &symList, std::ostream &os) {
+void emitAsm(const std::vector<Sym> &symList, std::ostream &os,
+             std::string_view versionStr) {
   AsmStreamer stream{os};
   emitFilePrologue(stream);
   for (const Sym &sym : symList)
     emitOneSym(stream, sym);
-  emitFileEpilogue(stream);
+  emitFileEpilogue(stream, versionStr);
   stream.flush();
 }

@@ -9,22 +9,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CEDO_BACKEND_EMITASM_H
-#define CEDO_BACKEND_EMITASM_H
-
-#include <iosfwd>
-#include <memory>
 #include <string>
-#include <string_view>
-#include <tuple>
-#include <vector>
 
-#include "cedo/Binfmt/Type.h"
+#include "Version.h"
 
-using SymName = std::string;
-using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
+char githash[41] __attribute__((weak)) = "";
+char version[20] __attribute__((weak)) = "";
 
-void emitAsm(const std::vector<Sym> &symList, std::ostream &os,
-             std::string_view versionStr = {});
+std::string createVersionString() {
+  using namespace std::string_literals;
 
-#endif // CEDO_BACKEND_EMITASM_H
+  if (!version[0])
+    return {};
+  return "("s + version + ") " + githash;
+}

@@ -45,7 +45,7 @@ sym8:
     .byte 7
     .byte 8
 
-    .ident "cedo 0.1"
+    .ident "cedo"
 )";
 
   std::stringstream output;

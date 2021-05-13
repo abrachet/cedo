@@ -9,22 +9,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CEDO_BACKEND_EMITASM_H
-#define CEDO_BACKEND_EMITASM_H
+#include <stdio.h>
 
-#include <iosfwd>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <tuple>
-#include <vector>
+char githash[41];
+char version[20];
 
-#include "cedo/Binfmt/Type.h"
-
-using SymName = std::string;
-using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
-
-void emitAsm(const std::vector<Sym> &symList, std::ostream &os,
-             std::string_view versionStr = {});
-
-#endif // CEDO_BACKEND_EMITASM_H
+int main() {
+  FILE *f = popen("git log -1 --format='%H' && git describe", "r");
+  if (!f)
+    return 1;
+  
+  fscanf(f, "%40s\n%20s", githash, version);
+}

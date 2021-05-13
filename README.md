@@ -36,6 +36,8 @@ githash:
 
 Obviously, something like a git hash is trivial enough that we can rely on the linker. However `cedo` with the help of debug symbols can serialize arbitrarily complicated data objects into object files.
 
+A similar example can be found in `src/version` where cedo bootstraps itself to provide it's own verison info.
+
 ## Building
 
 `mkdir build; cd build; cmake ..`

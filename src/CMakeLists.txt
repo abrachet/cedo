@@ -8,3 +8,5 @@ target_link_libraries(cedo
   Core
   Runtime
 )
+
+add_subdirectory(version)

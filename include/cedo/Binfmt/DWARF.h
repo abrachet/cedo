@@ -47,11 +47,15 @@ class DWARF {
   const uint8_t *debugInfoStart;
   std::vector<DIE> debugInfo;
 
-  std::optional<DIE> getTypeDieFromDie(const DIE &die) const;
-
   std::unique_ptr<Type> getTypeFromBaseTypeDie(const DIE &die) const;
+  std::unique_ptr<Type> getTypeFromArrayDie(const DIE &die) const;
   std::unique_ptr<Type> getTypeFromTypeDie(const DIE &die) const;
 
+  const DIE *getTypeDieFromDie(const DIE &die) const;
+  const DIE *getDIEFromOffset(uint64_t offset) const {
+    DWARF *mutableThis = const_cast<DWARF *>(this);
+    return mutableThis->getDIEFromOffset(offset);
+  }
   DIE *getDIEFromOffset(uint64_t offset) {
     auto it =
         std::find_if(debugInfo.begin(), debugInfo.end(),

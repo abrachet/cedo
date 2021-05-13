@@ -28,6 +28,7 @@ function(add_cedo_system_test test_file cedo_file symbol)
     add_test(NAME ${exec_name} COMMAND ${exec_name})
 endfunction()
 
+add_subdirectory(array)
 add_subdirectory(typedef)
 
 add_cedo_system_test(basic_test.c basic_test.cedo.c a)

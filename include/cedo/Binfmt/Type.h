@@ -57,11 +57,16 @@ struct BaseType : public Type {
 };
 
 struct ArrayType : public Type {
-  BaseType baseType;
+  std::unique_ptr<Type> elementType;
   size_t numElements;
 
+  ArrayType(uint8_t qualifiers, std::unique_ptr<Type> &&elementType,
+            size_t numElements)
+      : Type(qualifiers), elementType(std::move(elementType)),
+        numElements(numElements) {}
+
   size_t getObjectSize() const override {
-    return baseType.getObjectSize() * numElements;
+    return elementType->getObjectSize() * numElements;
   }
 };
 

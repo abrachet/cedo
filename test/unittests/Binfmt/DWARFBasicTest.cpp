@@ -35,12 +35,12 @@ struct DWARFBasic : public ::testing::Test {
 
 TEST_F(DWARFBasic, ReadBasicType) {
   auto expectVarSize = [&](std::string_view sym_name, size_t size) {
-    std::optional<Type> type = dwarf.getVariableType(sym_name);
+    std::unique_ptr<Type> type = dwarf.getVariableType(sym_name);
     if (!type) {
       EXPECT_TRUE(false) << "Couldn't find symbol: " << sym_name;
       return;
     }
-    EXPECT_EQ(type->size, size);
+    EXPECT_EQ(type->getObjectSize(), size);
   };
 
   expectVarSize("one", 1);

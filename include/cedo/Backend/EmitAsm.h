@@ -13,6 +13,7 @@
 #define CEDO_BACKEND_EMITASM_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -20,7 +21,7 @@
 #include "cedo/Binfmt/Type.h"
 
 using SymName = std::string;
-using Sym = std::tuple<SymName, Type, const void *>;
+using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
 
 void emitAsm(const std::vector<Sym> &symList, std::ostream &os);
 

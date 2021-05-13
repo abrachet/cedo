@@ -105,7 +105,7 @@ runUserCodeAndGetSyms(std::string_view userFilename,
       return debugSymbols.getError();
 
     for (std::string_view symName : outputSyms) {
-      std::optional<Type> type = debugSymbols->getVariableType(symName);
+      std::unique_ptr<Type> type = debugSymbols->getVariableType(symName);
       if (!type) {
         warn("Couldn't find debug info for '"s + symName.data() + '\'');
         continue;
@@ -118,7 +118,7 @@ runUserCodeAndGetSyms(std::string_view userFilename,
         continue;
       }
 
-      resolvedSyms.emplace_back(symName, *type, symLocation);
+      resolvedSyms.emplace_back(symName, std::move(type), symLocation);
     }
 
     return {};

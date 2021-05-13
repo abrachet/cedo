@@ -9,7 +9,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
 #include <sstream>
+#include <vector>
 
 #include "cedo/Backend/AsmStreamer.h"
 #include "cedo/Backend/EmitAsm.h"
@@ -49,7 +51,10 @@ sym8:
   std::stringstream output;
 
   uint8_t bytes[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-  emitAsm({{"sym4", Type{4}, bytes}, {"sym8", Type{8}, bytes}}, output);
+  std::vector<Sym> syms;
+  syms.emplace_back("sym4", std::make_unique<BaseType>(0, 4), bytes);
+  syms.emplace_back("sym8", std::make_unique<BaseType>(0, 8), bytes);
+  emitAsm(syms, output);
 
   EXPECT_STREQ(output.str().c_str(), expectedBasicTypes);
 }

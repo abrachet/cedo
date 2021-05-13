@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <variant>
@@ -47,7 +48,9 @@ class DWARF {
   std::vector<DIE> debugInfo;
 
   std::optional<DIE> getTypeDieFromDie(const DIE &die) const;
-  Type getTypeFromTypeDie(const DIE &die) const;
+
+  std::unique_ptr<Type> getTypeFromBaseTypeDie(const DIE &die) const;
+  std::unique_ptr<Type> getTypeFromTypeDie(const DIE &die) const;
 
   DIE *getDIEFromOffset(uint64_t offset) {
     auto it =
@@ -60,7 +63,7 @@ public:
   static ErrorOr<DWARF>
   readFromObject(const ObjectFileReader &objectFileReader);
 
-  std::optional<Type> getVariableType(std::string_view sym_name) const;
+  std::unique_ptr<Type> getVariableType(std::string_view sym_name) const;
 
   const std::vector<DIE> &getDebugInfo() const { return debugInfo; }
 };

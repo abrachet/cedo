@@ -40,22 +40,33 @@ std::optional<DWARF::DIE> DWARF::getTypeDieFromDie(const DIE &die) const {
   return *it;
 }
 
-Type DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
+std::unique_ptr<Type> DWARF::getTypeFromBaseTypeDie(const DIE &die) const {
+  assert(die.tag == DW_TAG_base_type);
+
+  auto attrOrErr = die.getAttributeIfPresent(DW_AT_byte_size);
+  if (!attrOrErr)
+    return nullptr;
+
+  return std::make_unique<BaseType>(0, std::get<uint64_t>(*attrOrErr));
+}
+
+std::unique_ptr<Type> DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
   if (typeDie.tag == DW_TAG_typedef) {
     std::optional<DWARF::DIE> realType = getTypeDieFromDie(typeDie);
     assert(realType &&
            "typedef DIE's DW_AT_type did not point to a valid type");
     return getTypeFromTypeDie(*realType);
   }
-  assert(typeDie.tag == DW_TAG_base_type &&
-         "can't deal with struct/array types");
-  auto attrOrErr = typeDie.getAttributeIfPresent(DW_AT_byte_size);
-  // TODO error handling
-  assert(attrOrErr && "All type die's must have a DW_AT_byte_size attribute");
-  return {std::get<uint64_t>(*attrOrErr)};
+  switch (typeDie.tag) {
+  case DW_TAG_base_type:
+    return getTypeFromBaseTypeDie(typeDie);
+  default:
+    assert(0 && "only base_type is currently supported");
+  }
+  return nullptr;
 }
 
-std::optional<Type> DWARF::getVariableType(std::string_view sym_name) const {
+std::unique_ptr<Type> DWARF::getVariableType(std::string_view sym_name) const {
   auto it = std::find_if(
       debugInfo.begin(), debugInfo.end(), [sym_name](const DIE &die) {
         if (die.tag != DW_TAG_variable)

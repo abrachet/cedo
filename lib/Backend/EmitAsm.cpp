@@ -20,21 +20,22 @@ static void emitFilePrologue(AsmStreamer &stream) {
 
 static size_t findAlignment(const Sym &sym) {
   auto &[_, type, addr] = sym;
-  for (uintptr_t i = 1; i < type.size; i++)
+  for (uintptr_t i = 1; i < type->getObjectSize(); i++)
     if (!(reinterpret_cast<uintptr_t>(addr) % i))
       return i;
-  return type.size;
+  return type->getObjectSize();
 }
 
 static void emitOneSym(AsmStreamer &stream, const Sym &sym) {
   auto &[name, type, addr] = sym;
   stream << AsmStreamer::Directive{".type"} << ' ' << name << ",@object";
-  stream << AsmStreamer::Directive{".size"} << ' ' << name << ", " << type.size;
+  stream << AsmStreamer::Directive{".size"} << ' ' << name << ", "
+         << type->getObjectSize();
   stream << AsmStreamer::Directive{".global"} << ' ' << name;
   stream << AsmStreamer::Directive{".align"} << ' ' << findAlignment(sym);
   stream << AsmStreamer::Label{name};
   stream << AsmStreamer::RawBytes{reinterpret_cast<const uint8_t *>(addr),
-                                  type.size};
+                                  type->getObjectSize()};
   stream << '\n';
 }
 

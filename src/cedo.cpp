@@ -29,7 +29,8 @@ struct Args {
   std::string_view inputFile;
   std::string outputFile;
   std::vector<std::string_view> outputSyms;
-  int saveTemps = 0;
+  bool saveTemps = false;
+  bool emitVersion = true;
 };
 
 Args parseArgs(int argc, const char **argv) {
@@ -48,6 +49,11 @@ Args parseArgs(int argc, const char **argv) {
     }
     if ("-o"s == *current || "--output"s == *current) {
       args.outputFile = *++current;
+      continue;
+    }
+
+    if ("--no-version"s == *current) {
+      args.emitVersion = false;
       continue;
     }
 
@@ -151,7 +157,7 @@ int main(int argc, const char **argv) {
   }
 
   std::ofstream stream{args.outputFile};
-  emitAsm(*symsOrErr, stream, createVersionString());
+  emitAsm(*symsOrErr, stream, args.emitVersion ? createVersionString() : "");
 
   return 0;
 }

@@ -49,6 +49,7 @@ class DWARF {
 
   std::unique_ptr<Type> getTypeFromBaseTypeDie(const DIE &die) const;
   std::unique_ptr<Type> getTypeFromArrayDie(const DIE &die) const;
+  std::unique_ptr<Type> getTypeFromStructTypeDie(const DIE &typeDie) const;
   std::unique_ptr<Type> getTypeFromTypeDie(const DIE &die) const;
 
   const DIE *getTypeDieFromDie(const DIE &die) const;

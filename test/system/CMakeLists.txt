@@ -29,6 +29,7 @@ function(add_cedo_system_test test_file cedo_file symbol)
 endfunction()
 
 add_subdirectory(array)
+add_subdirectory(compound)
 add_subdirectory(typedef)
 
 add_cedo_system_test(basic_test.c basic_test.cedo.c a)

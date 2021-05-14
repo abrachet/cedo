@@ -70,4 +70,17 @@ struct ArrayType : public Type {
   }
 };
 
+struct StructType : public Type {
+  using MemberOffset = size_t;
+  using Member = std::pair<std::unique_ptr<Type>, MemberOffset>;
+
+  std::vector<Member> members;
+  size_t totalByteSize;
+
+  StructType(uint8_t qualifiers, size_t totalByteSize)
+      : Type(qualifiers), totalByteSize(totalByteSize) {}
+
+  size_t getObjectSize() const override { return totalByteSize; }
+};
+
 #endif // CEDO_BINFMT_TYPE_H

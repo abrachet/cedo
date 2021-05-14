@@ -10,6 +10,7 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <string_view>
 
@@ -69,6 +70,42 @@ std::unique_ptr<Type> DWARF::getTypeFromArrayDie(const DIE &die) const {
                                      std::get<uint64_t>(*numElements));
 }
 
+std::unique_ptr<Type> DWARF::getTypeFromStructTypeDie(const DIE &die) const {
+  auto byteSize = die.getAttributeIfPresent(DW_AT_byte_size);
+  if (!byteSize)
+    return nullptr;
+
+  std::unique_ptr<StructType> structType =
+      std::make_unique<StructType>(0, std::get<uint64_t>(*byteSize));
+  std::vector<StructType::Member> &members = structType->members;
+
+  for (size_t childOffset : die.childrenOffsets) {
+    const DIE *child = getDIEFromOffset(childOffset);
+    // TOOD maybe children could be something other than member. Look into the
+    // standard...
+    if (!child || child->tag != DW_TAG_member)
+      return nullptr;
+
+    auto location = child->getAttributeIfPresent(DW_AT_data_member_location);
+    if (!location)
+      return nullptr;
+
+    const DIE *childTypeDie = getTypeDieFromDie(*child);
+    if (!childTypeDie)
+      return nullptr;
+
+    members.emplace_back(getTypeFromTypeDie(*childTypeDie),
+                         std::get<uint64_t>(*location));
+  }
+
+  std::sort(members.begin(), members.end(),
+            [](const StructType::Member &a, const StructType::Member &b) {
+              return b.second < a.second;
+            });
+
+  return structType;
+}
+
 std::unique_ptr<Type> DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
   if (typeDie.tag == DW_TAG_typedef) {
     const DWARF::DIE *realType = getTypeDieFromDie(typeDie);
@@ -79,6 +116,10 @@ std::unique_ptr<Type> DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
   switch (typeDie.tag) {
   case DW_TAG_base_type:
     return getTypeFromBaseTypeDie(typeDie);
+  case DW_TAG_structure_type:
+  case DW_TAG_class_type:
+  case DW_TAG_union_type:
+    return getTypeFromStructTypeDie(typeDie);
   case DW_TAG_array_type:
     return getTypeFromArrayDie(typeDie);
   default:

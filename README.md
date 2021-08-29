@@ -6,8 +6,6 @@
 
 We can use linkers to embed files or any arbitrary data into an object file. `cedo` however goes a step beyond it reads the debugging symbols of the program it runs to export any arbitrary data object.
 
-Currently `cedo` is just being started so this example will not actually work.
-
 #### **`githash.c`**
 ```C
 char githash[41];

@@ -19,10 +19,6 @@
 #include "cedo/Binfmt/Binfmt.h"
 
 
-static void emitFilePrologue(AsmStreamer &stream) {
-  stream << AsmStreamer::Directive{".data"};
-}
-
 static size_t findAlignment(const Sym &sym) {
   auto &[_, type, addr] = sym;
   for (uintptr_t i = 1; i < type->getObjectSize(); i++)
@@ -56,7 +52,7 @@ static std::pair<size_t, AsmStreamer::Directive> findLargestType(Triple triple, 
   return *it;
 }
 
-static void emitForSize(AsmStreamer &stream, size_t size, const uint8_t *addr) {
+void AsmEmitter::emitForSize(size_t size, const uint8_t *addr) {
   if (size == 8)
     return (void) (stream << *reinterpret_cast<const uint64_t *>(addr));
   if (size == 4)
@@ -67,20 +63,19 @@ static void emitForSize(AsmStreamer &stream, size_t size, const uint8_t *addr) {
   return (void) (stream << *addr);
 }
 
-static void emitValueForIntegralType(Triple triple, AsmStreamer &stream,
-                             const Type& type, const uint8_t *addr) {
+void AsmEmitter::emitValueForIntegralType(const Type& type, const uint8_t *addr) {
   for (size_t remainingBytes = type.getObjectSize(); remainingBytes; ) {
-    auto pair = findLargestType(triple, remainingBytes);
+    auto pair = findLargestType(outputTriple, remainingBytes);
     auto &[size, directive] = pair;
     stream << directive << ' ';
-    emitForSize(stream, size, addr);
+    emitForSize(size, addr);
     stream << '\n';
     addr += size;
     remainingBytes -= size;
   }
 }
 
-static void emitOneSym(Triple triple, AsmStreamer &stream, const Sym &sym) {
+void AsmEmitter::emitOneSym(const Sym &sym) {
   auto &[name, type, addr] = sym;
   stream << AsmStreamer::Directive{".type"} << ' ' << name << ",@object";
   stream << AsmStreamer::Directive{".size"} << ' ' << name << ", "
@@ -88,23 +83,25 @@ static void emitOneSym(Triple triple, AsmStreamer &stream, const Sym &sym) {
   stream << AsmStreamer::Directive{".global"} << ' ' << name;
   stream << AsmStreamer::Directive{".align"} << ' ' << findAlignment(sym);
   stream << AsmStreamer::Label{name};
-  emitValueForIntegralType(triple, stream, *type, reinterpret_cast<const uint8_t *>(addr));
+  emitValueForIntegralType(*type, reinterpret_cast<const uint8_t *>(addr));
   stream << '\n';
 }
 
-static void emitFileEpilogue(AsmStreamer &stream, std::string_view versionStr) {
+void AsmEmitter::emitFilePrologue() {
+  stream << AsmStreamer::Directive{".data"};
+}
+
+void AsmEmitter::emitFileEpilogue(std::string_view versionStr) {
   stream << AsmStreamer::Directive{".ident"} << " \"cedo";
   if (versionStr.size())
     stream << ' ' << versionStr;
   stream << '"';
 }
 
-void emitAsm(Triple outputTriple, const std::vector<Sym> &symList, std::ostream &os,
-             std::string_view versionStr) {
-  AsmStreamer stream{os};
-  emitFilePrologue(stream);
+void AsmEmitter::emitAsm(const std::vector<Sym> &symList, std::string_view versionStr) {
+  emitFilePrologue();
   for (const Sym &sym : symList)
-    emitOneSym(outputTriple, stream, sym);
-  emitFileEpilogue(stream, versionStr);
+    emitOneSym(sym);
+  emitFileEpilogue(versionStr);
   stream.flush();
 }

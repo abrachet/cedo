@@ -44,7 +44,8 @@ sym8:
   std::vector<Sym> syms;
   syms.emplace_back("sym4", std::make_unique<BaseType>(0, 4), bytes);
   syms.emplace_back("sym8", std::make_unique<BaseType>(0, 8), bytes);
-  emitAsm({FileFormat::ELF, AddressSize::Eight, Endianness::Little}, syms, output);
+  AsmEmitter asmEmitter{{FileFormat::ELF, AddressSize::Eight, Endianness::Little}, output};
+  asmEmitter.emitAsm(syms);
 
   EXPECT_STREQ(output.str().c_str(), expectedBasicTypes);
 }

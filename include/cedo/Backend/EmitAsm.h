@@ -19,13 +19,29 @@
 #include <tuple>
 #include <vector>
 
+#include "cedo/Backend/AsmStreamer.h"
 #include "cedo/Binfmt/Type.h"
 #include "cedo/Binfmt/Binfmt.h"
 
 using SymName = std::string;
 using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
 
-void emitAsm(Triple outputTriple, const std::vector<Sym> &symList, std::ostream &os,
-             std::string_view versionStr = {});
+class AsmEmitter {
+  Triple outputTriple;
+  AsmStreamer stream;
+
+  void emitFilePrologue();
+  void emitFileEpilogue(std::string_view versionStr);
+
+  void emitOneSym(const Sym &sym);
+  void emitValueForIntegralType(const Type& type, const uint8_t *addr);
+  void emitForSize(size_t size, const uint8_t *addr);
+
+public:
+  AsmEmitter(Triple outputTriple, std::ostream &os)
+    : outputTriple(outputTriple), stream(os) {}
+
+  void emitAsm(const std::vector<Sym> &symList, std::string_view versionStr = {});
+};
 
 #endif // CEDO_BACKEND_EMITASM_H

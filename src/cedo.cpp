@@ -162,7 +162,8 @@ int main(int argc, const char **argv) {
   std::pair<std::vector<Sym>, Triple> &p = *symsOrErr;
 
   std::ofstream stream{args.outputFile};
-  emitAsm(p.second, p.first, stream, args.emitVersion ? createVersionString() : "");
+  AsmEmitter asmEmitter{p.second, stream};
+  asmEmitter.emitAsm(p.first, args.emitVersion ? createVersionString() : "");
 
   return 0;
 }

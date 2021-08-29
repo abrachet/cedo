@@ -26,6 +26,11 @@ enum class AddressSize {
   Four,
 };
 
+// To save space Eight != 8
+inline size_t getAddrSize(AddressSize as) {
+  return as == AddressSize::Eight ? 8 : 4;
+}
+
 enum class Endianness {
   Little,
   Big,

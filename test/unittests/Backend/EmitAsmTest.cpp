@@ -26,24 +26,14 @@ TEST(EmitAsm, EmitBasicTypes) {
     .global sym4
     .align 1
 sym4:
-    .byte 1
-    .byte 2
-    .byte 3
-    .byte 4
+    .long 67305985
 
     .type sym8,@object
     .size sym8, 8
     .global sym8
     .align 1
 sym8:
-    .byte 1
-    .byte 2
-    .byte 3
-    .byte 4
-    .byte 5
-    .byte 6
-    .byte 7
-    .byte 8
+    .quad 578437695752307201
 
     .ident "cedo"
 )";
@@ -54,7 +44,7 @@ sym8:
   std::vector<Sym> syms;
   syms.emplace_back("sym4", std::make_unique<BaseType>(0, 4), bytes);
   syms.emplace_back("sym8", std::make_unique<BaseType>(0, 8), bytes);
-  emitAsm(syms, output);
+  emitAsm({FileFormat::ELF, AddressSize::Eight, Endianness::Little}, syms, output);
 
   EXPECT_STREQ(output.str().c_str(), expectedBasicTypes);
 }

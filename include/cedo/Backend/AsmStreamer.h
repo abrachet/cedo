@@ -91,6 +91,10 @@ public:
       *this << Byte{*curr};
     return *this;
   }
+
+  //AsmStreamer &operator<<(uint64_t i) {
+  //  *this << i << '\n';
+  //}
 };
 
 #endif // CEDO_BACKEND_BACKEND_H

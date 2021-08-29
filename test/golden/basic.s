@@ -4,19 +4,13 @@
     .global a
     .align 1
 a:
-    .byte 5
-    .byte 0
-    .byte 0
-    .byte 0
+    .long 5
 
     .type b,@object
     .size b, 4
     .global b
     .align 1
 b:
-    .byte 6
-    .byte 0
-    .byte 0
-    .byte 0
+    .long 6
 
     .ident "cedo"

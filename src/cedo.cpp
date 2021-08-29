@@ -91,12 +91,13 @@ void warn(std::string_view warning) {
   std::fprintf(stderr, "Warning: %s\n", warning.data());
 }
 
-static ErrorOr<std::vector<Sym>>
+static ErrorOr<std::pair<std::vector<Sym>, Triple>>
 runUserCodeAndGetSyms(std::string_view userFilename,
                       std::vector<std::string_view> outputSyms) {
   using namespace std::string_literals;
 
   std::vector<Sym> resolvedSyms;
+  Triple triple;
 
   auto concurrent = [&](const Runtime &runtime) -> std::string {
     ErrorOr<FileReader> fileOrErr = FileReader::open(userFilename);
@@ -107,6 +108,8 @@ runUserCodeAndGetSyms(std::string_view userFilename,
         createObjectFileReader(std::move(*fileOrErr));
     if (!objFileReader)
       return "Couldn't read object file"s;
+
+    triple = objFileReader->getTriple();
 
     ErrorOr<DWARF> debugSymbols = DWARF::readFromObject(*objFileReader);
     if (!debugSymbols)
@@ -143,21 +146,23 @@ runUserCodeAndGetSyms(std::string_view userFilename,
   if (*exitCodeOrErr)
     return "Exit code: '"s + std::to_string(*exitCodeOrErr) + '\'';
 
-  return resolvedSyms;
+  return std::pair<std::vector<Sym>, Triple>{std::move(resolvedSyms), triple};
 }
 
 int main(int argc, const char **argv) {
   Args args = parseArgs(argc, argv);
-
-  ErrorOr<std::vector<Sym>> symsOrErr =
+#if 1
+  ErrorOr<std::pair<std::vector<Sym>, Triple>> symsOrErr =
       runUserCodeAndGetSyms(args.inputFile, args.outputSyms);
   if (!symsOrErr) {
     std::fputs(symsOrErr.getError().c_str(), stderr);
     return 1;
   }
+#endif
+  std::pair<std::vector<Sym>, Triple> &p = *symsOrErr;
 
   std::ofstream stream{args.outputFile};
-  emitAsm(*symsOrErr, stream, args.emitVersion ? createVersionString() : "");
+  emitAsm(p.second, p.first, stream, args.emitVersion ? createVersionString() : "");
 
   return 0;
 }

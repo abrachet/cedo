@@ -20,11 +20,12 @@
 #include <vector>
 
 #include "cedo/Binfmt/Type.h"
+#include "cedo/Binfmt/Binfmt.h"
 
 using SymName = std::string;
 using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
 
-void emitAsm(const std::vector<Sym> &symList, std::ostream &os,
+void emitAsm(Triple outputTriple, const std::vector<Sym> &symList, std::ostream &os,
              std::string_view versionStr = {});
 
 #endif // CEDO_BACKEND_EMITASM_H

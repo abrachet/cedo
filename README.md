@@ -44,6 +44,6 @@ A similar example can be found in `src/version` where cedo bootstraps itself to 
 
 ## Testing
 
-`cd build/test/unittest; ctest`
+`cd build/test/; ctest`
 
-For testing the llvm utility `yaml2obj` is required.
+For running unit tests under the /test/unittest directory, the llvm utility `yaml2obj` is required.

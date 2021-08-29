@@ -31,7 +31,7 @@ function(add_cedo_golden_test)
     )
 
     string(REGEX REPLACE "\.c(|pp)$" "" test_name ${GOLDEN_CEDO_SRC})
-    add_test(NAME ${test_name} COMMAND ${CMAKE_COMMAND} -E compare_files ${cedo_out} ${CMAKE_CURRENT_SOURCE_DIR}/${GOLDEN_EXPECTED_OUTPUT})
+    add_test(NAME golden.${test_name} COMMAND ${CMAKE_COMMAND} -E compare_files ${cedo_out} ${CMAKE_CURRENT_SOURCE_DIR}/${GOLDEN_EXPECTED_OUTPUT})
 endfunction()
 
 add_cedo_golden_test(CEDO_SRC basic.c EXPECTED_OUTPUT basic.s SYMS a b)

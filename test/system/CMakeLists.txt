@@ -25,7 +25,7 @@ function(add_cedo_system_test test_file cedo_file symbol)
         ${cedo_out}
         ${test_file}
     )
-    add_test(NAME ${exec_name} COMMAND ${exec_name})
+    add_test(NAME system.${exec_name} COMMAND ${exec_name})
 endfunction()
 
 add_subdirectory(array)

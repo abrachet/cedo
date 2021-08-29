@@ -9,4 +9,4 @@ target_link_libraries(backend_test
     Backend
 )
 
-add_test(NAME backend_test COMMAND backend_test)
+add_test(NAME unit.backend_test COMMAND backend_test)

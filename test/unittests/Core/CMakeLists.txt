@@ -9,4 +9,4 @@ target_link_libraries(core_test
     Core
 )
 
-add_test(NAME core_test COMMAND core_test)
+add_test(NAME unit.core_test COMMAND core_test)

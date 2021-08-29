@@ -151,14 +151,14 @@ runUserCodeAndGetSyms(std::string_view userFilename,
 
 int main(int argc, const char **argv) {
   Args args = parseArgs(argc, argv);
-#if 1
+
   ErrorOr<std::pair<std::vector<Sym>, Triple>> symsOrErr =
       runUserCodeAndGetSyms(args.inputFile, args.outputSyms);
   if (!symsOrErr) {
     std::fputs(symsOrErr.getError().c_str(), stderr);
     return 1;
   }
-#endif
+
   std::pair<std::vector<Sym>, Triple> &p = *symsOrErr;
 
   std::ofstream stream{args.outputFile};

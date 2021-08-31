@@ -34,6 +34,13 @@ class AsmEmitter {
   void emitFileEpilogue(std::string_view versionStr);
 
   void emitOneSym(const Sym &sym);
+
+  void emitObject(const Type &type, const uint8_t *addr);
+
+  template <size_t AddrSize>
+  void emitPointerValue(const Type &type, const uint8_t *addr);
+  void emitPointerType(const Type& type, const uint8_t *addr);
+
   void emitValueForIntegralType(const Type& type, const uint8_t *addr);
   void emitForSize(size_t size, const uint8_t *addr);
 

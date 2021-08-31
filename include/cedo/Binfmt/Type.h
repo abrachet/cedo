@@ -83,4 +83,16 @@ struct StructType : public Type {
   size_t getObjectSize() const override { return totalByteSize; }
 };
 
+struct PointerType : public Type {
+  std::unique_ptr<Type> pointingType;
+
+  PointerType(uint8_t qualifiers, std::unique_ptr<Type> &&pointingType)
+    : Type(qualifiers), pointingType(std::move(pointingType)) {}
+
+  size_t getObjectSize() const override {
+    // TODO: Need to do something about this...
+    return 8;
+  }
+};
+
 #endif // CEDO_BINFMT_TYPE_H

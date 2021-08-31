@@ -63,7 +63,7 @@ void AsmEmitter::emitForSize(size_t size, const uint8_t *addr) {
   return (void) (stream << *addr);
 }
 
-void AsmEmitter::emitValueForIntegralType(const Type& type, const uint8_t *addr) {
+void AsmEmitter::emitValueForIntegralType(const Type &type, const uint8_t *addr) {
   for (size_t remainingBytes = type.getObjectSize(); remainingBytes; ) {
     auto pair = findLargestType(outputTriple, remainingBytes);
     auto &[size, directive] = pair;
@@ -75,15 +75,39 @@ void AsmEmitter::emitValueForIntegralType(const Type& type, const uint8_t *addr)
   }
 }
 
+static uint64_t getPointerValue(Triple inputTriple, const uint8_t *addr) {
+  if (getAddrSize(inputTriple.addrSize) == 8)
+    return *reinterpret_cast<const uint64_t *>(addr);
+  return *reinterpret_cast<const uint32_t *>(addr);
+}
+
+// TODO: Be able to emit non null pointers too
+void AsmEmitter::emitPointerType(const Type &type, const uint8_t *addr) {
+  // TODO: currently assuming inputTriple == outputTriple...
+  assert(!getPointerValue(outputTriple, addr) && "Can't handle non null pointers for now...");
+  
+  auto directive = std::get<1>(findLargestType(outputTriple, getAddrSize(outputTriple.addrSize)));
+  stream << directive << " 0\n";
+}
+
+void AsmEmitter::emitObject(const Type &type, const uint8_t *addr) {
+  if (type.isPointer())
+    emitPointerType(type, addr);
+  else if (type.isBuiltin())
+    emitValueForIntegralType(type, addr);
+  else
+    assert(false && "Can't emit type currently");
+}
+
 void AsmEmitter::emitOneSym(const Sym &sym) {
   auto &[name, type, addr] = sym;
   stream << AsmStreamer::Directive{".type"} << ' ' << name << ",@object";
   stream << AsmStreamer::Directive{".size"} << ' ' << name << ", "
-         << type->getObjectSize();
+         << (type->isPointer() ? getAddrSize(outputTriple.addrSize) : type->getObjectSize());
   stream << AsmStreamer::Directive{".global"} << ' ' << name;
   stream << AsmStreamer::Directive{".align"} << ' ' << findAlignment(sym);
   stream << AsmStreamer::Label{name};
-  emitValueForIntegralType(*type, reinterpret_cast<const uint8_t *>(addr));
+  emitObject(*type, reinterpret_cast<const uint8_t *>(addr));
   stream << '\n';
 }
 

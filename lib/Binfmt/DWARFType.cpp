@@ -106,6 +106,13 @@ std::unique_ptr<Type> DWARF::getTypeFromStructTypeDie(const DIE &die) const {
   return structType;
 }
 
+std::unique_ptr<Type> DWARF::getTypeFromPointerTypeDie(const DIE &die) const {
+  const DWARF::DIE *pointingTypeDie = getTypeDieFromDie(die);
+  std::unique_ptr<Type> pointingType = getTypeFromTypeDie(*pointingTypeDie);
+  // TODO: find other qualifiers
+  return std::make_unique<PointerType>(Type::Qualifier::Pointer, std::move(pointingType));
+}
+
 std::unique_ptr<Type> DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
   if (typeDie.tag == DW_TAG_typedef) {
     const DWARF::DIE *realType = getTypeDieFromDie(typeDie);
@@ -122,6 +129,8 @@ std::unique_ptr<Type> DWARF::getTypeFromTypeDie(const DIE &typeDie) const {
     return getTypeFromStructTypeDie(typeDie);
   case DW_TAG_array_type:
     return getTypeFromArrayDie(typeDie);
+  case DW_TAG_pointer_type:
+    return getTypeFromPointerTypeDie(typeDie);
   default:
     assert(0 && "only base_type is currently supported");
   }

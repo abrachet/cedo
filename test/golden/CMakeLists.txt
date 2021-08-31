@@ -35,3 +35,4 @@ function(add_cedo_golden_test)
 endfunction()
 
 add_cedo_golden_test(CEDO_SRC basic.c EXPECTED_OUTPUT basic.s SYMS a b)
+add_cedo_golden_test(CEDO_SRC nullptr.c EXPECTED_OUTPUT nullptr.s SYMS a)

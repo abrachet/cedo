@@ -93,8 +93,24 @@ void AsmEmitter::emitPointerType(const Type &type, const uint8_t *addr) {
 void AsmEmitter::emitTypeWithChildren(const Type &type, const uint8_t *addr) {
   const HasChildTypes *iterable = dynamic_cast<const HasChildTypes *>(&type);
   assert(iterable && "Object did not have children...");
-  for (std::pair<const Type &, off_t> child : *iterable)
+
+  size_t previousSize = 0;
+  const uint8_t *previousAddr = addr;
+
+  auto emitPaddingIfNecessary = [&] (size_t nextOffset) {
+    const uint8_t *nextMemberAddr = addr + nextOffset;
+    if (const uint8_t *prevEndAddr = previousAddr + previousSize; prevEndAddr != nextMemberAddr)
+      stream << AsmStreamer::Directive{".zero"} << ' ' << (off_t) (nextMemberAddr - prevEndAddr) << '\n';
+  };
+
+  for (std::pair<const Type &, off_t> child : *iterable) {
+    emitPaddingIfNecessary(child.second);
     emitObject(child.first, addr + child.second);
+    previousSize = child.first.getObjectSize();
+    previousAddr = addr + child.second;
+  }
+
+  emitPaddingIfNecessary(type.getObjectSize());
 }
 
 void AsmEmitter::emitObject(const Type &type, const uint8_t *addr) {

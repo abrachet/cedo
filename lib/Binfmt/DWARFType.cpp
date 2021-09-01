@@ -100,7 +100,7 @@ std::unique_ptr<Type> DWARF::getTypeFromStructTypeDie(const DIE &die) const {
 
   std::sort(members.begin(), members.end(),
             [](const StructType::Member &a, const StructType::Member &b) {
-              return b.second < a.second;
+              return b.second > a.second;
             });
 
   return structType;

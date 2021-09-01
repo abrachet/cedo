@@ -37,9 +37,8 @@ class AsmEmitter {
 
   void emitObject(const Type &type, const uint8_t *addr);
 
-  template <size_t AddrSize>
-  void emitPointerValue(const Type &type, const uint8_t *addr);
   void emitPointerType(const Type& type, const uint8_t *addr);
+  void emitTypeWithChildren(const Type &type, const uint8_t *addr);
 
   void emitValueForIntegralType(const Type& type, const uint8_t *addr);
   void emitForSize(size_t size, const uint8_t *addr);

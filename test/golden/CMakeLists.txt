@@ -34,5 +34,7 @@ function(add_cedo_golden_test)
     add_test(NAME golden.${test_name} COMMAND ${CMAKE_COMMAND} -E compare_files ${cedo_out} ${CMAKE_CURRENT_SOURCE_DIR}/${GOLDEN_EXPECTED_OUTPUT})
 endfunction()
 
+add_subdirectory(compound)
+
 add_cedo_golden_test(CEDO_SRC basic.c EXPECTED_OUTPUT basic.s SYMS a b)
 add_cedo_golden_test(CEDO_SRC nullptr.c EXPECTED_OUTPUT nullptr.s SYMS a)

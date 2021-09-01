@@ -60,7 +60,7 @@ void AsmEmitter::emitForSize(size_t size, const uint8_t *addr) {
   if (size == 2)
     return (void) (stream << *reinterpret_cast<const uint16_t *>(addr));
   assert(size == 1);
-  return (void) (stream << *addr);
+  return (void) (stream << (int)*addr);
 }
 
 void AsmEmitter::emitValueForIntegralType(const Type &type, const uint8_t *addr) {
@@ -85,14 +85,23 @@ static uint64_t getPointerValue(Triple inputTriple, const uint8_t *addr) {
 void AsmEmitter::emitPointerType(const Type &type, const uint8_t *addr) {
   // TODO: currently assuming inputTriple == outputTriple...
   assert(!getPointerValue(outputTriple, addr) && "Can't handle non null pointers for now...");
-  
+
   auto directive = std::get<1>(findLargestType(outputTriple, getAddrSize(outputTriple.addrSize)));
   stream << directive << " 0\n";
+}
+
+void AsmEmitter::emitTypeWithChildren(const Type &type, const uint8_t *addr) {
+  const HasChildTypes *iterable = dynamic_cast<const HasChildTypes *>(&type);
+  assert(iterable && "Object did not have children...");
+  for (std::pair<const Type &, off_t> child : *iterable)
+    emitObject(child.first, addr + child.second);
 }
 
 void AsmEmitter::emitObject(const Type &type, const uint8_t *addr) {
   if (type.isPointer())
     emitPointerType(type, addr);
+  else if (type.isCompound() || type.isArray())
+    emitTypeWithChildren(type, addr);
   else if (type.isBuiltin())
     emitValueForIntegralType(type, addr);
   else

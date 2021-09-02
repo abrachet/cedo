@@ -18,6 +18,7 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+#include <map>
 
 #include "cedo/Backend/AsmStreamer.h"
 #include "cedo/Binfmt/Type.h"
@@ -29,6 +30,8 @@ using Sym = std::tuple<SymName, std::unique_ptr<Type>, const void *>;
 class AsmEmitter {
   Triple outputTriple;
   AsmStreamer stream;
+
+  std::map<uint64_t, SymName> symbolizedAddrs;
 
   void emitFilePrologue();
   void emitFileEpilogue(std::string_view versionStr);
@@ -42,6 +45,8 @@ class AsmEmitter {
 
   void emitValueForIntegralType(const Type& type, const uint8_t *addr);
   void emitForSize(size_t size, const uint8_t *addr);
+
+  void registerKnownSyms(const std::vector<Sym> &symList);
 
 public:
   AsmEmitter(Triple outputTriple, std::ostream &os)

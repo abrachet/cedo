@@ -82,13 +82,17 @@ static uint64_t getPointerValue(Triple inputTriple, const uint8_t *addr) {
   return *reinterpret_cast<const uint32_t *>(addr);
 }
 
-// TODO: Be able to emit non null pointers too
 void AsmEmitter::emitPointerType(const Type &type, const uint8_t *addr) {
+  auto directive = findLargestType(outputTriple, getAddrSize(outputTriple.addrSize)).second;
   // TODO: currently assuming inputTriple == outputTriple...
-  assert(!getPointerValue(outputTriple, addr) && "Can't handle non null pointers for now...");
+  uint64_t ptr = getPointerValue(outputTriple, addr);
+  if (!ptr)
+    return (void) (stream << directive << " 0\n");
 
-  auto directive = std::get<1>(findLargestType(outputTriple, getAddrSize(outputTriple.addrSize)));
-  stream << directive << " 0\n";
+  auto found = symbolizedAddrs.find(ptr);
+  assert(found != symbolizedAddrs.end() && "Can only emit pointers to output symbols");
+
+  stream << directive << ' ' << found->second << '\n';
 }
 
 using TypeAndOffT = std::pair<const Type &, off_t>;
@@ -175,7 +179,14 @@ void AsmEmitter::emitFileEpilogue(std::string_view versionStr) {
   stream << '"';
 }
 
+void AsmEmitter::registerKnownSyms(const std::vector<Sym> &symList) {
+  for (const auto &[name, _, addr] : symList)
+    symbolizedAddrs[reinterpret_cast<uint64_t>(addr)] = name;
+}
+
 void AsmEmitter::emitAsm(const std::vector<Sym> &symList, std::string_view versionStr) {
+  registerKnownSyms(symList);
+
   emitFilePrologue();
   for (const Sym &sym : symList)
     emitOneSym(sym);

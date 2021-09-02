@@ -9,8 +9,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <ostream>
+#include <algorithm>
 #include <map>
+#include <ostream>
 
 #include <cstdint>
 
@@ -90,9 +91,36 @@ void AsmEmitter::emitPointerType(const Type &type, const uint8_t *addr) {
   stream << directive << " 0\n";
 }
 
+using TypeAndOffT = std::pair<const Type &, off_t>;
+
+static std::vector<TypeAndOffT> getTypeChildren(const HasChildTypes &type) {
+  std::map<off_t, const Type &> memberAddresses;
+
+  for (TypeAndOffT child : type) {
+    auto found = memberAddresses.find(child.second);
+    if (found == memberAddresses.end()) {
+      memberAddresses.emplace(child.second, child.first);
+      continue;
+    }
+    if (found->second.getObjectSize() < child.first.getObjectSize()) {
+      memberAddresses.erase(child.second);
+      memberAddresses.emplace(child.second, child.first);
+    }
+  }
+
+  std::vector<TypeAndOffT> ret;
+  std::transform(memberAddresses.begin(), memberAddresses.end(),
+                 std::back_insert_iterator(ret), [](auto pair) -> TypeAndOffT {
+                   return {pair.second, pair.first};
+                 });
+  return ret;
+}
+
 void AsmEmitter::emitTypeWithChildren(const Type &type, const uint8_t *addr) {
   const HasChildTypes *iterable = dynamic_cast<const HasChildTypes *>(&type);
   assert(iterable && "Object did not have children...");
+
+  std::vector<TypeAndOffT> children = getTypeChildren(*iterable);
 
   size_t previousSize = 0;
   const uint8_t *previousAddr = addr;
@@ -103,7 +131,7 @@ void AsmEmitter::emitTypeWithChildren(const Type &type, const uint8_t *addr) {
       stream << AsmStreamer::Directive{".zero"} << ' ' << (off_t) (nextMemberAddr - prevEndAddr) << '\n';
   };
 
-  for (std::pair<const Type &, off_t> child : *iterable) {
+  for (const TypeAndOffT &child : children) {
     emitPaddingIfNecessary(child.second);
     emitObject(child.first, addr + child.second);
     previousSize = child.first.getObjectSize();
